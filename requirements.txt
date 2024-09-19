@@ -17,3 +17,4 @@ protobuf==5.28.2
 python-dateutil==2.9.0.post0
 tzdata==2024.1
 typing-extensions==4.12.2
+kaleido==0.2.1
