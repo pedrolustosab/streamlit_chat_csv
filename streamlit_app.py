@@ -5,13 +5,6 @@ from langchain.callbacks import StreamlitCallbackHandler
 from langchain.chat_models import ChatOpenAI
 import pandas as pd
 import os
-import plotly.express as px
-import plotly.io as pio
-from io import BytesIO
-
-# Configuração do Plotly e Streamlit
-pio.kaleido.scope.default_format = "png"
-pio.templates.default = "plotly_white"
 
 file_formats = {
     "csv": pd.read_csv,
@@ -53,7 +46,7 @@ if uploaded_file:
         prompt = st.chat_input(placeholder="Pergunte sobre os dados")
         if prompt:
             # Adiciona instruções ao prompt, sem exibir na interface
-            enhanced_prompt = f"{prompt} (Sempre sugira um gráfico do Plotly.)"
+            enhanced_prompt = f"{prompt} (Sempre forneça informações detalhadas sobre os dados.)"
             st.session_state.messages.append({"role": "user", "content": prompt})  # Apenas o prompt original
             st.chat_message("user").write(prompt)
 
@@ -71,31 +64,3 @@ if uploaded_file:
                 response = pandas_df_agent({"input": enhanced_prompt}, callbacks=[st_cb])
                 st.session_state.messages.append({"role": "assistant", "content": response['output']})
                 st.write(response['output'])
-
-                # Geração do gráfico com base no prompt
-                chart_map = {
-                    "histograma": px.histogram,
-                    "linha": px.line,
-                    "barra": px.bar,
-                    "distribuição": px.scatter,
-                    "pizza": px.pie,
-                }
-
-                # Verifica o tipo de gráfico solicitado
-                for chart_name, chart_fn in chart_map.items():
-                    if chart_name in enhanced_prompt.lower():
-                        # Identifica a coluna a ser utilizada no gráfico
-                        column = next((col for col in df.columns if col.lower() in enhanced_prompt.lower()), df.columns[0])
-
-                        # Criação e exibição do gráfico
-                        fig = chart_fn(df, x=column, title=f"{chart_name.title()} de {column}")
-                        st.plotly_chart(fig)
-
-                        # Salva o gráfico como PNG
-                        img_bytes = BytesIO()
-                        fig.write_image(img_bytes, format='png')
-                        img_bytes.seek(0)
-
-                        # Botão para download do gráfico em PNG
-                        st.download_button(label="Baixar gráfico como PNG", data=img_bytes, file_name=f"{chart_name}_{column}.png", mime="image/png")
-                        break
